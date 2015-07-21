@@ -499,13 +499,16 @@ def do_main_program():
                 return (FALL_THROUGH, None, None)
             
             try:
-                if not cfg.user.reject_if_in_groups_ids.empty():
+                if cfg.user.reject_if_in_groups_ids:
                     groups = ''
                     first = True
                     for group in cfg.user.reject_if_in_groups_ids:
                         if not first:
                             groups = groups+','
-                        groups = groups+group
+			else:
+			    first = False
+                        groups = groups+str(group)
+		    debug('groupsid: %s', groups)
                     sql = 'SELECT DISTINCT U.UserID, U.Password, U.HashMethod, U.Name FROM %sUser as U, %sUserRole as UR WHERE UR.UserID=U.UserID AND UR.RoleID not in (%s) AND LOWER(U.Name) = LOWER(%%s)' % (cfg.database.prefix, cfg.database.prefix, groups)
                 else:
                     sql = 'SELECT UserID, Password, HashMethod, Name FROM %sUser WHERE LOWER(Name) = LOWER(%%s)' % cfg.database.prefix
@@ -519,9 +522,9 @@ def do_main_program():
                 info('Fall through for unknown user "%s"', name)
                 return (FALL_THROUGH, None, None)
     
-            uid, upw, uhashmethod, uname, activated = res
+            uid, upw, uhashmethod, uname = res
             
-            if activated == 1 and vanilla_check_hash(pw, upw, uname, uhashmethod):
+            if vanilla_check_hash(pw, upw, uname, uhashmethod):
                 # Authenticated, fetch group memberships
                 try:
                     sql = 'SELECT Name FROM %sRole as R, %sUserRole as UR WHERE UR.UserID=%s AND UR.RoleID=R.RoleID' % (cfg.database.prefix, cfg.database.prefix, uid)
@@ -706,13 +709,16 @@ def do_main_program():
                 filter = '%'
             
             try:
-                if not cfg.user.reject_if_in_groups_ids.empty():
+                if cfg.user.reject_if_in_groups_ids:
                     groups = ''
                     first = True
                     for group in cfg.user.reject_if_in_groups_ids:
                         if not first:
                             groups = groups+','
-                        groups = groups+group
+			else:
+			    first = False
+                        groups = groups+str(group)
+		    debug('groupsid: %s', groups)
                     sql = 'SELECT DISTINCT U.UserID, U.Name FROM %sUser as U, %sUserRole as UR WHERE UR.UserID=U.UserID AND UR.RoleID not in (%s) AND Name LIKE %%s' % (cfg.database.prefix, cfg.database.prefix, groups)
                 else:
                     sql = 'SELECT UserID, Name FROM %sUser WHERE Name LIKE %%s' % cfg.database.prefix
