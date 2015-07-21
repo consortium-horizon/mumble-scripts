@@ -635,10 +635,10 @@ def do_main_program():
             elif "http://" in avatar:
                 avatar_file = avatar
             elif "userpics/" in avatar:
-                _ , filename = avatar.split('/')
+                _ , folder, filename = avatar.split('/')
                 avatar_file = cfg.forum.path + "uploads/userpics/" +folder+"/p" + filename
             elif "attachments/" in avatar:
-                _ , folder, filename = avatar.split('/')
+                _ , filename = avatar.split('/')
                 avatar_file = cfg.forum.path + "uploads/attachments/p" + filename
             else:
                 warning("avatar with an unexpected value, fall through")
@@ -792,7 +792,7 @@ def vanilla_check_hash(password, storedhash, username, hashmethod):
     """
     Python implementation of the vanilla check hash function
     """
-    if hashmethod.lower = 'django':
+    if hashmethod.lower() == 'django':
         if not storedhash.find('$'):
             return md5(password) == storedhash
         else:
