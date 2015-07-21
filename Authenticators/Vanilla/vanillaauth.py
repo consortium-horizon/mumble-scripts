@@ -94,7 +94,9 @@ default = {'database':(('lib', str, 'MySQLdb'),
                      
             'user':(('id_offset', int, 1000000000),
                     ('avatar_enable', x2bool, False),
-                    ('reject_on_error', x2bool, True)),
+                    ('reject_on_error', x2bool, True),
+                    ('reject_if_in_groups_ids', lambda x:map(int, x.split(',')), [])
+                    ),
                     
             'ice':(('host', str, '127.0.0.1'),
                    ('port', int, 6502),
@@ -497,7 +499,16 @@ def do_main_program():
                 return (FALL_THROUGH, None, None)
             
             try:
-                sql = 'SELECT UserID, Password, HashMethod, Name, Verified FROM %sUser WHERE LOWER(Name) = LOWER(%%s)' % cfg.database.prefix
+                if not cfg.user.reject_if_in_groups_ids.empty():
+                    groups = ''
+                    first = True
+                    for group in cfg.user.reject_if_in_groups_ids:
+                        if not first:
+                            groups = groups+','
+                        groups = groups+group
+                    sql = 'SELECT DISTINCT U.UserID, U.Password, U.HashMethod, U.Name FROM %sUser as U, %sUserRole as UR WHERE UR.UserID=U.UserID AND UR.RoleID not in (%s) AND LOWER(U.Name) = LOWER(%%s)' % (cfg.database.prefix, cfg.database.prefix, groups)
+                else:
+                    sql = 'SELECT UserID, Password, HashMethod, Name FROM %sUser WHERE LOWER(Name) = LOWER(%%s)' % cfg.database.prefix
                 cur = threadDB.execute(sql, [name])
             except threadDbException:
                 return (FALL_THROUGH, None, None)
@@ -695,7 +706,16 @@ def do_main_program():
                 filter = '%'
             
             try:
-                sql = 'SELECT UserID, Name FROM %sUser WHERE verified = 1 AND Name LIKE %%s' % cfg.database.prefix
+                if not cfg.user.reject_if_in_groups_ids.empty():
+                    groups = ''
+                    first = True
+                    for group in cfg.user.reject_if_in_groups_ids:
+                        if not first:
+                            groups = groups+','
+                        groups = groups+group
+                    sql = 'SELECT DISTINCT U.UserID, U.Name FROM %sUser as U, %sUserRole as UR WHERE UR.UserID=U.UserID AND UR.RoleID not in (%s) AND Name LIKE %%s' % (cfg.database.prefix, cfg.database.prefix, groups)
+                else:
+                    sql = 'SELECT UserID, Name FROM %sUser WHERE Name LIKE %%s' % cfg.database.prefix
                 cur = threadDB.execute(sql, [filter])
             except threadDbException:
                 return {}
