@@ -506,10 +506,10 @@ def do_main_program():
                     for group in cfg.user.reject_if_in_groups_ids:
                         if not first:
                             groups = groups+','
-			else:
-			    first = False
+                        else:
+                            first = False
                         groups = groups+str(group)
-		    debug('groupsid: %s', groups)
+                    debug('groupsid: %s', groups)
                     sql = 'SELECT DISTINCT U.UserID, U.Password, U.HashMethod, U.Name FROM %sUser as U, %sUserRole as UR WHERE UR.UserID=U.UserID AND UR.RoleID not in (%s) AND LOWER(U.Name) = LOWER(%%s)' % (cfg.database.prefix, cfg.database.prefix, groups)
                 else:
                     sql = 'SELECT UserID, Password, HashMethod, Name FROM %sUser WHERE LOWER(Name) = LOWER(%%s)' % cfg.database.prefix
@@ -716,10 +716,10 @@ def do_main_program():
                     for group in cfg.user.reject_if_in_groups_ids:
                         if not first:
                             groups = groups+','
-			else:
-			    first = False
+                        else:
+                            first = False
                         groups = groups+str(group)
-		    debug('groupsid: %s', groups)
+                    debug('groupsid: %s', groups)
                     sql = 'SELECT DISTINCT U.UserID, U.Name FROM %sUser as U, %sUserRole as UR WHERE UR.UserID=U.UserID AND UR.RoleID not in (%s) AND Name LIKE %%s' % (cfg.database.prefix, cfg.database.prefix, groups)
                 else:
                     sql = 'SELECT UserID, Name FROM %sUser WHERE Name LIKE %%s' % cfg.database.prefix
