@@ -48,6 +48,7 @@ import urllib2
 import logging
 import ConfigParser
 import crypt, getpass, pwd
+import bcrypt
 
 from threading  import Timer
 from optparse   import OptionParser
@@ -824,25 +825,38 @@ def vanilla_check_hash(password, storedhash, username, hashmethod):
         else:
             method, salt, hash = storedhash.split('$')
             if method.lower() == 'crypt':
-                return crypt.crypt(password, salt).hexdigest() == hash
+                return crypt.crypt(password, salt) == hash
             elif method.lower() == 'md5':
                 return md5(salt+password).hexdigest() == hash
             elif method.lower() == 'sha256':
                 return sha256(salt+password).hexdigest() == hash
             elif method.lower() == 'sha1':
                 return sha1(salt+password).hexdigest() == hash
-            assert false, "Malformed Django Hash" % hashmethod
-            return false
+            assert False, "Malformed Django Hash" % hashmethod
+            return False
         
     else: #Vanilla assumed
         if not hashmethod.lower() == "vanilla":
-            assert false, "HashMethod %s is unsupported yet" % hashmethod
-            return false
+            assert False, "HashMethod %s is unsupported yet" % hashmethod
+            return False
         if storedhash[0] == None:
-            return false
+            return False
         if storedhash[0] == '$':
-            return phpass.verify(password, storedhash)
-        return false
+            result = False
+            try:
+                result = bcrypt.hashpw(password, storedhash) == storedhash
+            except Exception, e:
+                debug('Exception bcrypt %s', e)
+                result = False
+            if result == False:
+                debug('Trying phpass')
+                try:
+                    result = phpass.verify(password, storedhash)
+                except Exception, e:
+                    debug('Exception phpass %s', e)
+                    result = False
+            return result
+        return False
 
 
         
